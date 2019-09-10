@@ -6,7 +6,6 @@ work out whether we're going to support deleting through the UI.
 
 import React, { PropTypes } from 'react';
 import Field from '../Field';
-import cloudinaryResize from '../../../admin/client/utils/cloudinaryResize';
 import { Button, FormField, FormInput, FormNote } from '../../../admin/client/App/elemental';
 
 import ImageThumbnail from '../../components/ImageThumbnail';
@@ -57,7 +56,7 @@ module.exports = Field.create({
 	componentWillUpdate (nextProps) {
 		// Reset the action state when the value changes
 		// TODO: We should add a check for a new item ID in the store
-		if (this.props.value.public_id !== nextProps.value.public_id) {
+		if (this.props.value && this.props.value.public_id !== nextProps.value.public_id) {
 			this.setState({
 				removeExisting: false,
 				userSelectedFile: null,
@@ -83,20 +82,15 @@ module.exports = Field.create({
 
 		return this.state.userSelectedFile
 			? this.state.userSelectedFile.name
-			: `${public_id}.${format} (${width}×${height})`;
+			: `${public_id} (${width}×${height})`;
 	},
 	getImageSource (height = 90) {
-		// TODO: This lets really wide images break the layout
+		// TODO: This lets really wide images break the layout111
 		let src;
 		if (this.hasLocal()) {
 			src = this.state.dataUri;
 		} else if (this.hasExisting()) {
-			src = cloudinaryResize(this.props.value.public_id, {
-				crop: 'fit',
-				height: height,
-				format: 'jpg',
-				secure: this.props.secure,
-			});
+			src = this.props.value.url || this.props.value.secure_url
 		}
 
 		return src;
@@ -181,7 +175,7 @@ module.exports = Field.create({
 
 	renderLightbox () {
 		const { value } = this.props;
-
+		
 		if (!value || !value.public_id) return;
 
 		return (
